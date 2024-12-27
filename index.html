@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informações do Dispositivo e Gerenciamento de Arquivos</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fingerprintjs/3.3.0/fingerprint.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+            overflow-y: auto;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .info {
+            margin-bottom: 10px;
+        }
+
+        .info span {
+            font-weight: bold;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        ul li {
+            margin: 5px 0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #777;
+        }
+
+        .error-message {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Informações Detalhadas do Dispositivo</h1>
+        <div class="info">
+            <p><span>ID Único do Dispositivo:</span> <span id="deviceId">Carregando...</span></p>
+        </div>
+        <div class="info">
+            <p><span>Versão do Navegador:</span> <span id="browserVersion"></span></p>
+        </div>
+        <div class="info">
+            <p><span>Plataforma:</span> <span id="platform"></span></p>
+        </div>
+        <div class="info">
+            <p><span>Resolução da Tela:</span> <span id="screenResolution"></span></p>
+        </div>
+        <div class="info">
+            <p><span>Profundidade de Cor:</span> <span id="colorDepth"></span></p>
+        </div>
+        <div class="info">
+            <p><span>Orientação da Tela:</span> <span id="screenOrientation"></span></p>
+        </div>
+        <div class="info">
+            <p><span>Memória RAM (em GB):</span> <span id="ram"></span></p>
+        </div>
+        <div class="info">
+            <p><span>Processador:</span> <span id="processor"></span></p>
+        </div>
+        <div class="info">
+            <p><span>WebKit:</span> <span id="webkit"></span></p>
+        </div>
+        <div class="info">
+            <p><span>Idioma:</span> <span id="language"></span></p>
+        </div>
+        <div class="info">
+            <p><span>User-Agent:</span> <span id="userAgent"></span></p>
+        </div>
+        <div class="error-message" id="error-message"></div>
+    </div>
+
+    <div class="container">
+        <h2>Gerenciamento de Arquivos</h2>
+        <button onclick="document.getElementById('fileInput').click()">Selecionar Arquivos</button>
+        <input type="file" id="fileInput" webkitdirectory multiple style="display:none;">
+        <ul id="fileList"></ul>
+    </div>
+
+    <div class="footer">
+        <p>Site desenvolvido para exibir informações sobre o dispositivo e gerenciar arquivos</p>
+    </div>
+
+    <script>
+        // Função para carregar as informações detalhadas do dispositivo
+        function loadFingerprint() {
+            if (typeof FingerprintJS !== 'undefined') {
+                FingerprintJS.load().then(fp => {
+                    fp.get().then(result => {
+                        document.getElementById('deviceId').textContent = result.visitorId;
+                    }).catch(error => {
+                        console.error('Erro ao obter o FingerprintJS:', error);
+                        document.getElementById('error-message').textContent = "Falha ao obter ID do FingerprintJS.";
+                    });
+                }).catch(error => {
+                    console.error('Erro ao carregar o FingerprintJS:', error);
+                    document.getElementById('error-message').textContent = "FingerprintJS não carregado. ID alternativo usado.";
+                    loadAlternativeFingerprint();
+                });
+            } else {
+                document.getElementById('error-message').textContent = "FingerprintJS não disponível.";
+                loadAlternativeFingerprint();
+            }
+        }
+
+        // Função alternativa para gerar ID único
+        function loadAlternativeFingerprint() {
+            const systemInfo = `${navigator.platform} | ${navigator.userAgent}`;
+            const timestamp = new Date().getTime();
+            const uniqueDeviceId = systemInfo + timestamp;
+            document.getElementById('deviceId').textContent = uniqueDeviceId;
+        }
+
+        // Preencher informações gerais
+        function loadGeneralInfo() {
+            const browserVersion = navigator.userAgent.match(/(Firefox|Chrome|Safari|Opera|Edge|MSIE|Trident|Nintendo browser|)\/([0-9\.]+)/);
+            document.getElementById('browserVersion').textContent = browserVersion ? browserVersion[1] + " " + browserVersion[2] : "Não disponível";
+            const architecture = navigator.userAgent.includes("x64") ? "x64" : "x32";
+            document.getElementById('platform').textContent = navigator.platform + " (" + architecture + ")";
+            document.getElementById('screenResolution').textContent = `${window.screen.width}x${window.screen.height}`;
+            document.getElementById('colorDepth').textContent = window.screen.colorDepth + " bits";
+            document.getElementById('screenOrientation').textContent = window.screen.orientation.type || "Não disponível";
+            document.getElementById('ram').textContent = navigator.deviceMemory ? navigator.deviceMemory + " GB" : "Não disponível";
+            document.getElementById('processor').textContent = navigator.hardwareConcurrency ? navigator.hardwareConcurrency + " núcleos" : "Não disponível";
+            document.getElementById('webkit').textContent = navigator.userAgent.includes("AppleWebKit") ? "Sim" : "Não";
+            document.getElementById('language').textContent = navigator.language || navigator.userLanguage;
+            document.getElementById('userAgent').textContent = navigator.userAgent;
+        }
+
+        // Função para exibir detalhes dos arquivos selecionados
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+
+        fileInput.addEventListener('change', event => {
+            fileList.innerHTML = '';  // Limpa a lista antes de adicionar novos itens
+            const files = event.target.files;
+
+            if (files.length > 0) {
+                Array.from(files).forEach(file => {
+                    // Criar item de lista para exibir detalhes do arquivo
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `Nome: ${file.name} | Tamanho: ${Math.round(file.size / 1024)} KB | Tipo: ${file.type || 'Desconhecido'}`;
+
+                    // Usar FileReader para processar o arquivo
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        // O conteúdo do arquivo pode ser acessado através de event.target.result
+                        console.log('Conteúdo do arquivo:', event.target.result);
+                    };
+                    reader.readAsText(file); // Pode ser usado também readAsDataURL, readAsArrayBuffer dependendo do tipo de arquivo
+
+                    // Adiciona o item de lista à página
+                    fileList.appendChild(listItem);
+                });
+            } else {
+                const listItem = document.createElement('li');
+                listItem.textContent = 'Nenhum arquivo selecionado.';
+                fileList.appendChild(listItem);
+            }
+        });
+
+        // Iniciar coleta de informações
+        loadFingerprint();
+        loadGeneralInfo();
+    </script>
+</body>
+</html>
